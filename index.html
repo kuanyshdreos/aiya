@@ -15,6 +15,7 @@ body {
     font-family: 'Cormorant Garamond', serif;
     color: rgba(255,255,255,0.92);
 }
+
 .word {
     position: absolute;
     color: rgba(255,255,255,0.7);
@@ -23,15 +24,18 @@ body {
     pointer-events: none;
     animation: drift linear infinite;
 }
+
 .word.special {
     color: rgba(255,255,255,0.95);
     font-size: 26px;
     font-weight: 600;
 }
+
 @keyframes drift {
     from { transform: translateY(110vh) translateX(var(--x)); }
     to   { transform: translateY(-20vh) translateX(calc(var(--x) + 40px)); }
 }
+
 .center {
     position: absolute;
     top: 50%; left: 50%;
@@ -41,6 +45,7 @@ body {
     transition: 2s;
     pointer-events: none;
 }
+
 .line {
     position: absolute;
     left: 50%;
@@ -51,24 +56,24 @@ body {
     width: 80%;
     transition: 2.5s ease;
 }
+
 .show { opacity: 1; }
 </style>
 </head>
 
 <body onclick="revealText()">
 
-<!-- Музыку вставим позже -->
 <audio id="music" src="MUSIC_LINK_HERE" preload="auto"></audio>
 
 <div class="center">Айя</div>
 
 <script>
 const words = [
-"дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие",
-"дыхание","небо","пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл",
-"покой","уют","тишина внутри","принадлежность","вечность","рядом","навсегда","искренность",
-"светлая","бережная","глубокая","необыкновенная","любимая"
+"дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие","дыхание","небо",
+"пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл","покой","уют","тишина внутри","принадлежность",
+"вечность","рядом","навсегда","искренность","светлая","бережная","глубокая","необыкновенная","любимая"
 ];
+
 function createWord() {
     const w = document.createElement('div');
     w.className = Math.random() < 0.10 ? "word special" : "word";
@@ -80,7 +85,7 @@ function createWord() {
     setTimeout(() => w.remove(), 80000);
 }
 setInterval(createWord, 300);
-for (let i=0; i<60; i++) createWord();
+for(let i=0;i<60;i++) createWord();
 
 const lines = [
 "Каждый твой взгляд навсегда остался во мне.",
@@ -105,13 +110,13 @@ let revealed = false;
 function revealText() {
     if (revealed) return;
     revealed = true;
-    lines.forEach((t, i) => {
+    lines.forEach((t,i)=>{
         const el = document.createElement("div");
         el.className = "line";
-        el.style.top = (20 + i * 4) + "vh";
+        el.style.top = (20 + i*4) + "vh";
         el.innerHTML = t;
         document.body.appendChild(el);
-        setTimeout(() => el.classList.add("show"), 700 * i);
+        setTimeout(()=> el.classList.add("show"), 700*i);
     });
 }
 </script>
