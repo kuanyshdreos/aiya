@@ -13,22 +13,24 @@ body {
     background: radial-gradient(circle at center, #0b0b14 0%, #030309 100%);
     overflow: hidden;
     font-family: 'Cormorant Garamond', serif;
-    color: rgba(255,255,255,0.92);
+    color: rgba(255,255,255,0.9);
 }
 
 .word {
     position: absolute;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.55);
     font-size: 18px;
     white-space: nowrap;
     pointer-events: none;
     animation: drift linear infinite;
+    text-shadow: 0 0 8px rgba(255,255,255,0.25);
 }
 
 .word.special {
     color: rgba(255,255,255,0.95);
     font-size: 26px;
     font-weight: 600;
+    text-shadow: 0 0 14px rgba(255,255,255,0.8);
 }
 
 @keyframes drift {
@@ -40,10 +42,15 @@ body {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 4vw;
-    opacity: 0.4;
+    font-size: 6vw;
+    opacity: 0;
     pointer-events: none;
-    transition: 2s;
+    animation: fadein 4s forwards ease;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to { opacity: 0.45; }
 }
 
 .line {
@@ -51,10 +58,11 @@ body {
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
-    font-size: 1.8vw;
+    font-size: 2vw;
     text-align: center;
     width: 80%;
-    transition: 2.5s ease;
+    transition: 2.8s ease;
+    text-shadow: 0 0 18px rgba(255,255,255,0.5);
 }
 
 .show { opacity: 1; }
@@ -63,11 +71,23 @@ body {
 
 <body onclick="revealText()">
 
-<audio id="music" src="" preload="auto"></audio>
+<audio id="music"></audio>
 
 <div class="center">Айя</div>
 
 <script>
+document.getElementById("music").src = "ТВОЯ_ССЫЛКА_НА_МУЗЫКУ.mp3";
+
+const music = document.getElementById("music");
+let audioStarted = false;
+document.body.addEventListener("click", () => {
+  if (!audioStarted) {
+    music.volume = 0.35;
+    music.play();
+    audioStarted = true;
+  }
+});
+
 const words = [
 "дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие","дыхание","небо",
 "пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл","покой","уют","тишина внутри","принадлежность",
