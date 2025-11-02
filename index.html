@@ -1,145 +1,255 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Айя</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Планета Айя — космос и любовь</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
 <style>
-body {
-    margin: 0;
-    background: radial-gradient(circle at center, #0b0b14 0%, #030309 100%);
-    overflow: hidden;
-    font-family: 'Cormorant Garamond', serif;
-    color: rgba(255,255,255,0.9);
-}
+  /*
+    PLANET AYYA — красочно и позитивно
+    — звёзды + туманности, планета с кольцами, текст-кольцо АЙЯ
+    — работает в Chrome/Brave/Safari и даже в iframes
+  */
+  :root{
+    --names: "Планета Айя";
+    --text: rgba(255,255,255,.94);
+    --muted: rgba(255,255,255,.78);
+    --c1: #a5e1ff; /* небесно‑голубой */
+    --c2: #ffc8e7; /* розовый */
+    --c3: #ffe6a9; /* персиковый */
+    --c4: #baffd6; /* мята */
+    --bg: #000;
+  }
+  html,body{height:100%;margin:0;background:var(--bg)}
+  body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; color:var(--text); overflow:hidden}
 
-.word {
-    position: absolute;
-    color: rgba(255,255,255,0.55);
-    font-size: 18px;
-    white-space: nowrap;
-    pointer-events: none;
-    animation: drift linear infinite;
-    text-shadow: 0 0 8px rgba(255,255,255,0.25);
-}
+  /* тёплые туманности */
+  .bg{position:fixed;inset:-12vmax;z-index:-3; pointer-events:none;filter:blur(60px);}
+  .bg::before,.bg::after{content:"";position:absolute;inset:0;}
+  .bg::before{background:
+    radial-gradient(80vmax 80vmax at 20% 30%, rgba(165,225,255,.22), transparent 60%),
+    radial-gradient(65vmax 65vmax at 80% 65%, rgba(255,200,231,.22), transparent 65%),
+    radial-gradient(70vmax 70vmax at 60% 90%, rgba(255,230,169,.16), transparent 70%),
+    radial-gradient(50vmax 50vmax at 10% 80%, rgba(186,255,214,.16), transparent 70%);
+    animation: neb 26s ease-in-out infinite alternate;}
+  .bg::after{background: radial-gradient(90vmax 70vmax at 50% -10%, rgba(255,255,255,.08), transparent 70%); mix-blend-mode: screen;}
+  @keyframes neb{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-2%,0)}}
 
-.word.special {
-    color: rgba(255,255,255,0.95);
-    font-size: 26px;
-    font-weight: 600;
-    text-shadow: 0 0 14px rgba(255,255,255,0.8);
-}
+  /* звёзды */
+  #stars{position:fixed;inset:0; z-index:-1; display:block}
 
-@keyframes drift {
-    from { transform: translateY(110vh) translateX(var(--x)); }
-    to   { transform: translateY(-20vh) translateX(calc(var(--x) + 40px)); }
-}
+  /* заголовок */
+  header.names{position:fixed; left:50%; top:8vh; transform:translateX(-50%); text-align:center}
+  header.names h1{margin:0; font-family:'Cormorant Garamond',serif; font-weight:600; letter-spacing:.08em;
+                  font-size:clamp(26px,5.4vw,64px); text-shadow:0 0 30px rgba(255,255,255,.22)}
+  header.names h1::after{content:var(--names)}
+  header.names .tag{margin-top:.6rem; font-size:clamp(12px,1.9vw,18px); opacity:.88}
 
-.center {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 6vw;
-    opacity: 0;
-    pointer-events: none;
-    animation: fadein 4s forwards ease;
-}
+  /* сцена планеты */
+  .scene{position:fixed; left:50%; top:52%; transform:translate(-50%,-50%); width:min(86vmin,860px); aspect-ratio:1/1}
+  svg{width:100%; height:100%; overflow:visible}
 
-@keyframes fadein {
-    from { opacity: 0; }
-    to { opacity: 0.45; }
-}
+  /* вращение элементов */
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-.line {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    font-size: 2vw;
-    text-align: center;
-    width: 80%;
-    transition: 2.8s ease;
-    text-shadow: 0 0 18px rgba(255,255,255,0.5);
-}
+  /* подписи и фразы */
+  .lines{position:fixed; left:50%; bottom:9vh; transform:translateX(-50%); width:min(92%,920px); text-align:center}
+  .line{opacity:0; filter:blur(6px); transform:translateY(10px); transition:opacity 1.1s ease, filter 1.3s ease, transform 1.1s ease;
+        font-size:clamp(14px,2.1vw,24px);}
+  .line.show{opacity:1; filter:blur(0); transform:translateY(0)}
 
-.show { opacity: 1; }
+  /* кнопки */
+  .controls{position:fixed; right:16px; bottom:16px; display:flex; gap:10px; align-items:center}
+  .btn{-webkit-tap-highlight-color:transparent; cursor:pointer; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10);
+       padding:10px 14px; border-radius:999px; color:#fff; font-size:14px; backdrop-filter:blur(8px);
+       box-shadow:0 10px 30px rgba(0,0,0,.24), inset 0 0 18px rgba(255,255,255,.07);
+       transition:transform .15s ease, background .2s ease, border-color .2s ease}
+  .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.26)}
+  .badge{border-radius:999px; padding:6px 10px; font-size:12px; opacity:.9; background:linear-gradient(90deg, rgba(165,225,255,.28), rgba(255,200,231,.28)); border:1px solid rgba(255,255,255,.18)}
+
+  @supports(padding:max(0px)){
+    .controls{right:max(16px, env(safe-area-inset-right)); bottom:max(16px, env(safe-area-inset-bottom))}
+    header.names{top:max(6vh, calc(env(safe-area-inset-top) + 24px))}
+  }
 </style>
 </head>
+<body>
+  <!-- фон -->
+  <div class="bg" aria-hidden="true"></div>
+  <canvas id="stars" aria-hidden="true"></canvas>
 
-<body onclick="revealText()">
+  <!-- заголовок -->
+  <header class="names">
+    <h1></h1>
+    <div class="tag">космос, любовь и мы — красочно и по‑настоящему</div>
+  </header>
 
-<audio id="music"></audio>
+  <!-- сцена: планета Айя с кольцами и текст‑орбитой -->
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="-360 -360 720 720">
+      <defs>
+        <!-- градиенты планеты и бликов -->
+        <radialGradient id="planetGrad" cx="35%" cy="35%" r="70%">
+          <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.95"/>
+          <stop offset="15%" stop-color="#e6f8ff" stop-opacity="0.8"/>
+          <stop offset="48%" stop-color="#a5e1ff" stop-opacity="0.9"/>
+          <stop offset="85%" stop-color="#2b355c" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#161b33" stop-opacity="1"/>
+        </radialGradient>
+        <radialGradient id="spec" cx="30%" cy="30%" r="35%">
+          <stop offset="0%"  stop-color="#fff" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+        </radialGradient>
+        <!-- градиент кольца -->
+        <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"  stop-color="var(--c1)"/>
+          <stop offset="50%" stop-color="var(--c2)"/>
+          <stop offset="100%" stop-color="var(--c3)"/>
+        </linearGradient>
+        <!-- круг для текст‑орбиты -->
+        <path id="textOrbit" d="M 0 -260 A 260 260 0 1 1 0 260 A 260 260 0 1 1 0 -260" />
+        <!-- маска для блика планеты поверх кольца -->
+        <clipPath id="planetClip"><circle r="200"/></clipPath>
+      </defs>
 
-<div class="center">Айя</div>
+      <!-- задняя часть кольца (за планетой) -->
+      <g transform="skewY(-8)">
+        <ellipse rx="320" ry="110" fill="none" stroke="url(#ringGrad)" stroke-opacity=".35" stroke-width="16" />
+      </g>
+
+      <!-- планета Айя -->
+      <g>
+        <circle r="200" fill="url(#planetGrad)"/>
+        <circle r="140" fill="url(#spec)"/>
+        <!-- мягкие точки‑искорки на терминаторе -->
+        <g opacity=".35">
+          <circle cx="-70" cy="-40" r="3" fill="#fff"/>
+          <circle cx="20" cy="30" r="2.4" fill="#fff"/>
+          <circle cx="60" cy="-10" r="2.8" fill="#fff"/>
+        </g>
+      </g>
+
+      <!-- передняя часть кольца (перед планетой) с клипом -->
+      <g clip-path="url(#planetClip)" transform="skewY(-8)">
+        <ellipse rx="320" ry="110" fill="none" stroke="url(#ringGrad)" stroke-width="10" stroke-opacity=".9"
+                 stroke-dasharray="42 58" stroke-dashoffset="12" />
+      </g>
+
+      <!-- текст‑орбита с именем Айя -->
+      <g style="animation: spin 28s linear infinite; transform-origin: 0px 0px;">
+        <text font-family="Cormorant Garamond, serif" font-size="24" fill="var(--muted)">
+          <textPath$1 startOffset="50%">
+            АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • 
+            АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ • АЙЯ •
+          </textPath>
+        </text>
+      </g>
+
+      <!-- маленькое сердечко‑спутник -->
+      <g id="moon">
+        <path d="M0,-8 C-6,-16 -18,-8 -8,2 C0,10 10,2 0,-8 Z" fill="#fff" opacity=".9" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- фразы -->
+  <section class="lines" id="lines"></section>
+
+  <!-- музыка и фуллскрин -->
+  <audio id="music" preload="auto" src="" crossorigin="anonymous"></audio>
+  <div class="controls">
+    <span class="badge" id="hint">нажми ▷ для эмбиента</span>
+    <button class="btn" id="play">▷ Музыка</button>
+    <button class="btn" id="fullscreen">⤢ На весь экран</button>
+  </div>
 
 <script>
-document.getElementById("music").src = "ТВОЯ_ССЫЛКА_НА_МУЗЫКУ.mp3";
-
-const music = document.getElementById("music");
-let audioStarted = false;
-document.body.addEventListener("click", () => {
-  if (!audioStarted) {
-    music.volume = 0.35;
-    music.play();
-    audioStarted = true;
+  /* ====== 1) STARS (цветные, но деликатные) ====== */
+  const cvs = document.getElementById('stars');
+  const ctx = cvs.getContext('2d');
+  let W, H, DPR; let stars=[], meteors=[];
+  function resize(){
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = cvs.width  = Math.floor(innerWidth * DPR);
+    H = cvs.height = Math.floor(innerHeight * DPR);
+    cvs.style.width  = innerWidth  + 'px';
+    cvs.style.height = innerHeight + 'px';
+    makeStars();
   }
-});
+  function makeStars(){
+    const count = Math.floor((innerWidth * innerHeight) / 6500);
+    const palette = ['#ffffff','#ffffff','#a5e1ff','#ffc8e7','#ffe6a9','#baffd6'];
+    stars = new Array(count).fill(0).map(()=>({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: (Math.random()*1.3 + 0.3) * DPR,
+      a: Math.random()*0.7 + 0.2,
+      tw: Math.random()*2*Math.PI,
+      s: Math.random()*0.06 + 0.02,
+      c: palette[Math.floor(Math.random()*palette.length)]
+    }));
+  }
+  function shoot(){
+    if (Math.random() < 0.006) {
+      const fromLeft = Math.random() < 0.5;
+      meteors.push({ x: fromLeft? -50*DPR : W+50*DPR, y: Math.random()*H*0.6,
+        vx: (fromLeft? 1 : -1) * (Math.random()*4 + 3) * DPR, vy: (Math.random()*1 - .5) * DPR, life: 0 });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(const s of stars){
+      s.tw += 0.02; const alpha = s.a * (0.7 + Math.sin(s.tw)*0.3);
+      ctx.globalAlpha = alpha; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = s.c; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    for(let i=meteors.length-1;i>=0;i--){
+      const m = meteors[i]; m.x += m.vx; m.y += m.vy; m.life++;
+      const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx*6, m.y - m.vy*6);
+      grad.addColorStop(0,'rgba(255,255,255,1)'); grad.addColorStop(1,'rgba(165,225,255,0)');
+      ctx.strokeStyle = grad; ctx.lineWidth = 2*DPR; ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(m.x - m.vx*6, m.y - m.vy*6); ctx.stroke();
+      ctx.beginPath(); ctx.arc(m.x,m.y,2.5*DPR,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+      if (m.x < -100*DPR || m.x > W+100*DPR || m.life > 240) meteors.splice(i,1);
+    }
+    shoot(); requestAnimationFrame(draw);
+  }
+  addEventListener('resize', resize); resize(); requestAnimationFrame(draw);
 
-const words = [
-"дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие","дыхание","небо",
-"пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл","покой","уют","тишина внутри","принадлежность",
-"вечность","рядом","навсегда","искренность","светлая","бережная","глубокая","необыкновенная","любимая"
-];
+  /* ====== 2) HEART‑MOON (маленькое сердечко по орбите) ====== */
+  const moon = document.getElementById('moon');
+  let t = 0; function orbit(){ t += 0.02; const rX=260, rY=120; const x = Math.cos(t)*rX; const y = Math.sin(t)*rY;
+    moon.setAttribute('transform', `translate(${x},${y}) skewY(-8)`); requestAnimationFrame(orbit);} orbit();
 
-function createWord() {
-    const w = document.createElement('div');
-    w.className = Math.random() < 0.10 ? "word special" : "word";
-    w.innerText = Math.random() < 0.07 ? "Айя" : words[Math.floor(Math.random()*words.length)];
-    w.style.left = Math.random()*100 + "vw";
-    w.style.setProperty('--x', (Math.random()*40 - 20) + "px");
-    w.style.animationDuration = (35 + Math.random()*20) + "s";
-    document.body.appendChild(w);
-    setTimeout(() => w.remove(), 80000);
-}
-setInterval(createWord, 300);
-for(let i=0;i<60;i++) createWord();
+  /* ====== 3) LINES ====== */
+  const TEXT=[
+    'Айя — моя планета. Тёплая, светлая, живая.',
+    'Твоё имя — как орбита: к тебе всегда тянет.',
+    'Когда ты рядом — космос становится добрее.',
+    'Пусть будет больше смеха, тепла и наших «да».',
+    'Люблю тебя. Сегодня — и дальше.'
+  ];
+  const box=document.getElementById('lines');
+  TEXT.forEach((t,i)=>{ const el=document.createElement('div'); el.className='line'; el.style.transitionDelay=`${i*700}ms`;
+    el.textContent=t; box.appendChild(el); setTimeout(()=> el.classList.add('show'), 1100 + i*700); });
 
-const lines = [
-"Каждый твой взгляд навсегда остался во мне.",
-"Даже когда ты была далеко — ты была рядом.",
-"Ты — человек, с которым можно пройти через многое.",
-"Айя, это всё, что я хочу, чтобы ты знала:",
-"твоя любовь греет мою душу.",
-"Ты в моем сердце — в дыхании, в смехе, в улыбке.",
-"Да, я ошибался. И я знаю это.",
-"Но даже через ошибки — я всегда любил тебя.",
-"Я бываю упрямым, резким, живым.",
-"Но всегда бегу к тебе. Всегда.",
-"Мы прошли раны вместе — и стали глубже.",
-"Твоя улыбка. Твой ум. То, как ты смотришь на мир.",
-"Всё в тебе — удивительно.",
-"Если я рядом с тобой — я твой щит.",
-"Ни грубого слова. Ни обиды. Только любовь.",
-"Столько, сколько хватит на жизнь. И дальше."
-];
+  /* ====== 4) HEADER NAME ====== */
+  document.querySelector('header.names h1').style.setProperty('--names', getComputedStyle(document.documentElement).getPropertyValue('--names'));
 
-let revealed = false;
-function revealText() {
-    if (revealed) return;
-    revealed = true;
-    lines.forEach((t,i)=>{
-        const el = document.createElement("div");
-        el.className = "line";
-        el.style.top = (20 + i*4) + "vh";
-        el.innerHTML = t;
-        document.body.appendChild(el);
-        setTimeout(()=> el.classList.add("show"), 700*i);
-    });
-}
+  /* ====== 5) MUSIC + FULLSCREEN ====== */
+  const music=document.getElementById('music');
+  const playBtn=document.getElementById('play');
+  const hint=document.getElementById('hint');
+  let playing=false;
+  playBtn.addEventListener('click', async()=>{
+    try{ if(!playing){ music.volume=.35; await music.play(); playing=true; playBtn.textContent='❚❚ Пауза'; hint.style.display='none'; }
+          else{ music.pause(); playing=false; playBtn.textContent='▷ Музыка'; } }
+    catch{ alert('Вставь ссылку на эмбиент в <audio src="...">'); }
+  });
+  document.getElementById('fullscreen').addEventListener('click', async()=>{
+    const el=document.documentElement; if(!document.fullscreenElement){ await el.requestFullscreen().catch(()=>{}); } else { await document.exitFullscreen().catch(()=>{}); }
+  });
 </script>
-
 </body>
 </html>
