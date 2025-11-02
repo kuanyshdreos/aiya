@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Планета Айя — космос и любовь</title>
+<title>Айя</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
@@ -10,123 +10,115 @@
 <style>
 body {
     margin: 0;
-    background: #000;
-    color: rgba(255,255,255,0.92);
+    background: radial-gradient(circle at center, #0b0b14 0%, #030309 100%);
+    overflow: hidden;
     font-family: 'Cormorant Garamond', serif;
+    color: rgba(255,255,255,0.92);
 }
 
-main {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px 20px;
-    box-sizing: border-box;
+.word {
+    position: absolute;
+    color: rgba(255,255,255,0.7);
+    font-size: 18px;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: drift linear infinite;
 }
 
-h1 {
-    font-size: 42px;
+.word.special {
+    color: rgba(255,255,255,0.95);
+    font-size: 26px;
     font-weight: 600;
-    margin: 0;
 }
 
-.subtitle {
-    margin-top: 8px;
-    font-size: 18px;
-    opacity: 0.85;
+@keyframes drift {
+    from { transform: translateY(110vh) translateX(var(--x)); }
+    to   { transform: translateY(-20vh) translateX(calc(var(--x) + 40px)); }
 }
 
-.planet-wrapper {
-    margin: 40px 0;
+.center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4vw;
+    opacity: 0.4;
+    pointer-events: none;
+    transition: 2s;
 }
 
-.planet-svg {
-    width: 60vw;
-    max-width: 460px;
+.line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    font-size: 1.8vw;
+    text-align: center;
+    width: 80%;
+    transition: 2.5s ease;
 }
 
-.text {
-    max-width: 600px;
-    line-height: 1.6;
-    margin-bottom: 30px;
-    font-size: 20px;
-}
-
-button {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.6);
-    color: #fff;
-    padding: 10px 22px;
-    margin: 6px;
-    font-size: 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: rgba(255,255,255,0.15);
-}
+.show { opacity: 1; }
 </style>
-
 </head>
-<body>
-<main>
 
-<h1>Планета Айя</h1>
-<p class="subtitle">космос, любовь и мы — красочно и по-настоящему</p>
+<body onclick="revealText()">
 
-<div class="planet-wrapper">
-<svg class="planet-svg" viewBox="0 0 500 500">
-<defs>
-<radialGradient id="grad1" cx="50%" cy="50%" r="50%">
-  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
-  <stop offset="100%" stop-color="#3b4f85"/>
-</radialGradient>
-</defs>
-<circle cx="250" cy="250" r="180" fill="url(#grad1)"></circle>
-<ellipse cx="250" cy="260" rx="260" ry="90" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="18"/>
-</svg>
-</div>
+<audio id="music" src="" preload="auto"></audio>
 
-<p class="text">
-Айя — моя планета. Тёплая, светлая, живая.<br>
-Твоё имя — как орбита: к тебе всегда тянет.<br>
-Когда ты рядом — космос становится добрее.<br><br>
-Пусть будет больше смеха, тепла и наших «да».<br>
-Люблю тебя. Сегодня — и дальше.
-</p>
-
-<button id="musicButton">▷ Музыка</button>
-<button id="fullscreenButton">⤢ На весь экран</button>
-
-<audio id="audio"></audio>
-
-</main>
+<div class="center">Айя</div>
 
 <script>
-const audio = document.getElementById("audio");
-const musicButton = document.getElementById("musicButton");
-const fullscreenButton = document.getElementById("fullscreenButton");
+const words = [
+"дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие","дыхание","небо",
+"пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл","покой","уют","тишина внутри","принадлежность",
+"вечность","рядом","навсегда","искренность","светлая","бережная","глубокая","необыкновенная","любимая"
+];
 
-let playing = false;
+function createWord() {
+    const w = document.createElement('div');
+    w.className = Math.random() < 0.10 ? "word special" : "word";
+    w.innerText = Math.random() < 0.07 ? "Айя" : words[Math.floor(Math.random()*words.length)];
+    w.style.left = Math.random()*100 + "vw";
+    w.style.setProperty('--x', (Math.random()*40 - 20) + "px");
+    w.style.animationDuration = (35 + Math.random()*20) + "s";
+    document.body.appendChild(w);
+    setTimeout(() => w.remove(), 80000);
+}
+setInterval(createWord, 300);
+for(let i=0;i<60;i++) createWord();
 
-musicButton.onclick = () => {
-    if (!audio.src) {
-        audio.src = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_68b3c9b89c.mp3?filename=ambient-calm-space-110624.mp3";
-    }
-    playing ? audio.pause() : audio.play();
-    playing = !playing;
-    musicButton.textContent = playing ? "❚❚ Музыка" : "▷ Музыка";
-};
+const lines = [
+"Каждый твой взгляд навсегда остался во мне.",
+"Даже когда ты была далеко — ты была рядом.",
+"Ты — человек, с которым можно пройти через многое.",
+"Айя, это всё, что я хочу, чтобы ты знала:",
+"твоя любовь греет мою душу.",
+"Ты в моем сердце — в дыхании, в смехе, в улыбке.",
+"Да, я ошибался. И я знаю это.",
+"Но даже через ошибки — я всегда любил тебя.",
+"Я бываю упрямым, резким, живым.",
+"Но всегда бегу к тебе. Всегда.",
+"Мы прошли раны вместе — и стали глубже.",
+"Твоя улыбка. Твой ум. То, как ты смотришь на мир.",
+"Всё в тебе — удивительно.",
+"Если я рядом с тобой — я твой щит.",
+"Ни грубого слова. Ни обиды. Только любовь.",
+"Столько, сколько хватит на жизнь. И дальше."
+];
 
-fullscreenButton.onclick = () => {
-    document.fullscreenElement ?
-        document.exitFullscreen() :
-        document.documentElement.requestFullscreen();
-};
+let revealed = false;
+function revealText() {
+    if (revealed) return;
+    revealed = true;
+    lines.forEach((t,i)=>{
+        const el = document.createElement("div");
+        el.className = "line";
+        el.style.top = (20 + i*4) + "vh";
+        el.innerHTML = t;
+        document.body.appendChild(el);
+        setTimeout(()=> el.classList.add("show"), 700*i);
+    });
+}
 </script>
 
 </body>
