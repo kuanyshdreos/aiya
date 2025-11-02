@@ -15,7 +15,6 @@ body {
     font-family: 'Cormorant Garamond', serif;
     color: rgba(255,255,255,0.92);
 }
-
 .word {
     position: absolute;
     color: rgba(255,255,255,0.7);
@@ -24,18 +23,15 @@ body {
     pointer-events: none;
     animation: drift linear infinite;
 }
-
 .word.special {
     color: rgba(255,255,255,0.95);
     font-size: 26px;
     font-weight: 600;
 }
-
 @keyframes drift {
     from { transform: translateY(110vh) translateX(var(--x)); }
     to   { transform: translateY(-20vh) translateX(calc(var(--x) + 40px)); }
 }
-
 .center {
     position: absolute;
     top: 50%; left: 50%;
@@ -45,8 +41,6 @@ body {
     transition: 2s;
     pointer-events: none;
 }
-
-/* Текст признания */
 .line {
     position: absolute;
     left: 50%;
@@ -57,8 +51,6 @@ body {
     width: 80%;
     transition: 2.5s ease;
 }
-
-/* будет появляться по очереди */
 .show { opacity: 1; }
 </style>
 </head>
@@ -71,14 +63,12 @@ body {
 <div class="center">Айя</div>
 
 <script>
-/* Летающие слова */
 const words = [
 "дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие",
 "дыхание","небо","пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл",
 "покой","уют","тишина внутри","принадлежность","вечность","рядом","навсегда","искренность",
 "светлая","бережная","глубокая","необыкновенная","любимая"
 ];
-
 function createWord() {
     const w = document.createElement('div');
     w.className = Math.random() < 0.10 ? "word special" : "word";
@@ -87,13 +77,11 @@ function createWord() {
     w.style.setProperty('--x', (Math.random()*40 - 20) + "px");
     w.style.animationDuration = (35 + Math.random()*20) + "s";
     document.body.appendChild(w);
-
     setTimeout(() => w.remove(), 80000);
 }
 setInterval(createWord, 300);
-for(let i=0;i<60;i++) createWord();
+for (let i=0; i<60; i++) createWord();
 
-/* ТЕКСТ ПРИЗНАНИЯ */
 const lines = [
 "Каждый твой взгляд навсегда остался во мне.",
 "Даже когда ты была далеко — ты была рядом.",
@@ -117,15 +105,13 @@ let revealed = false;
 function revealText() {
     if (revealed) return;
     revealed = true;
-
-    // music.play(); // когда будет готова
-    lines.forEach((t,i)=>{
+    lines.forEach((t, i) => {
         const el = document.createElement("div");
         el.className = "line";
-        el.style.top = (20 + i*4) + "vh"; 
+        el.style.top = (20 + i * 4) + "vh";
         el.innerHTML = t;
         document.body.appendChild(el);
-        setTimeout(()=> el.classList.add("show"), 700*i);
+        setTimeout(() => el.classList.add("show"), 700 * i);
     });
 }
 </script>
