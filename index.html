@@ -2,118 +2,131 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Айя</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        margin: 0;
-        background: radial-gradient(circle at center, #0f0f1a 0%, #05050a 100%);
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        font-family: 'Cormorant Garamond', serif;
-        color: #ffffffd9;
-    }
+body {
+    margin: 0;
+    background: radial-gradient(circle at center, #0b0b14 0%, #030309 100%);
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    color: rgba(255,255,255,0.92);
+}
 
-    .stars {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: white;
-        border-radius: 50%;
-        animation: flicker 3s infinite ease-in-out;
-        opacity: 0.5;
-    }
+.word {
+    position: absolute;
+    color: rgba(255,255,255,0.7);
+    font-size: 18px;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: drift linear infinite;
+}
 
-    @keyframes flicker {
-        0% { opacity: 0.2; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.6); }
-        100% { opacity: 0.2; transform: scale(1); }
-    }
+.word.special {
+    color: rgba(255,255,255,0.95);
+    font-size: 26px;
+    font-weight: 600;
+}
 
-    .container {
-        text-align: center;
-        animation: fadeIn 3s ease forwards;
-        opacity: 0;
-        z-index: 2;
-    }
+@keyframes drift {
+    from { transform: translateY(110vh) translateX(var(--x)); }
+    to   { transform: translateY(-20vh) translateX(calc(var(--x) + 40px)); }
+}
 
-    @keyframes fadeIn {
-        to { opacity: 1; }
-    }
+.center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4vw;
+    opacity: 0.4;
+    transition: 2s;
+    pointer-events: none;
+}
 
-    h1 {
-        font-size: 4.2vw;
-        letter-spacing: 0.5px;
-        font-weight: 300;
-        margin-bottom: 14px;
-    }
+/* Текст признания */
+.line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    font-size: 1.8vw;
+    text-align: center;
+    width: 80%;
+    transition: 2.5s ease;
+}
 
-    p {
-        font-size: 1.4vw;
-        opacity: 0.8;
-        margin-bottom: 60px;
-    }
-
-    .btn {
-        padding: 14px 42px;
-        font-size: 1.3vw;
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.2);
-        backdrop-filter: blur(10px);
-        color: #fff;
-        cursor: pointer;
-        border-radius: 6px;
-        transition: 0.4s;
-    }
-
-    .btn:hover {
-        background: rgba(255,255,255,0.18);
-    }
-
-    /* Скрытое сообщение */
-    .message {
-        opacity: 0;
-        transition: 2s ease;
-        font-size: 1.6vw;
-        margin-top: 40px;
-    }
+/* будет появляться по очереди */
+.show { opacity: 1; }
 </style>
 </head>
 
-<body>
+<body onclick="revealText()">
 
+<!-- Музыку вставим позже -->
 <audio id="music" src="MUSIC_LINK_HERE" preload="auto"></audio>
 
-<div class="container">
-    <h1>Айя</h1>
-    <p>Год — и мы всё ещё не говорим много слов.<br>Мы просто чувствуем.</p>
-    <button class="btn" onclick="reveal()">Нажми</button>
-
-    <div class="message" id="msg">
-        Спасибо, что ты со мной.
-    </div>
-</div>
+<div class="center">Айя</div>
 
 <script>
-// создаём "звёзды"
-for(let i=0; i<160; i++){
-    let s = document.createElement("div");
-    s.className = "stars";
-    s.style.left = Math.random()*100 + "vw";
-    s.style.top = Math.random()*100 + "vh";
-    s.style.animationDelay = Math.random()*5 + "s";
-    document.body.appendChild(s);
-}
+/* Летающие слова */
+const words = [
+"дом","тепло","мягкость","лёгкость","тихое счастье","доверие","внутренний свет","спокойствие",
+"дыхание","небо","пауза","тихий смех","вечер рядом","глаза","настоящее","нежность","смысл",
+"покой","уют","тишина внутри","принадлежность","вечность","рядом","навсегда","искренность",
+"светлая","бережная","глубокая","необыкновенная","любимая"
+];
 
-function reveal() {
-    document.getElementById("msg").style.opacity = "1";
-    document.getElementById("music").play();
+function createWord() {
+    const w = document.createElement('div');
+    w.className = Math.random() < 0.10 ? "word special" : "word";
+    w.innerText = Math.random() < 0.07 ? "Айя" : words[Math.floor(Math.random()*words.length)];
+    w.style.left = Math.random()*100 + "vw";
+    w.style.setProperty('--x', (Math.random()*40 - 20) + "px");
+    w.style.animationDuration = (35 + Math.random()*20) + "s";
+    document.body.appendChild(w);
+
+    setTimeout(() => w.remove(), 80000);
+}
+setInterval(createWord, 300);
+for(let i=0;i<60;i++) createWord();
+
+/* ТЕКСТ ПРИЗНАНИЯ */
+const lines = [
+"Каждый твой взгляд навсегда остался во мне.",
+"Даже когда ты была далеко — ты была рядом.",
+"Ты — человек, с которым можно пройти через многое.",
+"Айя, это всё, что я хочу, чтобы ты знала:",
+"твоя любовь греет мою душу.",
+"Ты в моем сердце — в дыхании, в смехе, в улыбке.",
+"Да, я ошибался. И я знаю это.",
+"Но даже через ошибки — я всегда любил тебя.",
+"Я бываю упрямым, резким, живым.",
+"Но всегда бегу к тебе. Всегда.",
+"Мы прошли раны вместе — и стали глубже.",
+"Твоя улыбка. Твой ум. То, как ты смотришь на мир.",
+"Всё в тебе — удивительно.",
+"Если я рядом с тобой — я твой щит.",
+"Ни грубого слова. Ни обиды. Только любовь.",
+"Столько, сколько хватит на жизнь. И дальше."
+];
+
+let revealed = false;
+function revealText() {
+    if (revealed) return;
+    revealed = true;
+
+    // music.play(); // когда будет готова
+    lines.forEach((t,i)=>{
+        const el = document.createElement("div");
+        el.className = "line";
+        el.style.top = (20 + i*4) + "vh"; 
+        el.innerHTML = t;
+        document.body.appendChild(el);
+        setTimeout(()=> el.classList.add("show"), 700*i);
+    });
 }
 </script>
 
