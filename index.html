@@ -4,140 +4,146 @@
 <meta charset="UTF-8">
 <title>Планета Айя</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family:Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 body {
-    margin: 0;
-    background: #000;
-    overflow: hidden;
-    font-family: 'Cormorant Garamond', serif;
-    color: white;
-    text-align: center;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Cormorant Garamond', serif;
+  color: white;
 }
 
-/* Мягкие звёзды */
-.stars {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(white, transparent) 1px 1px,
-                radial-gradient(white, transparent) 2px 2px,
-                radial-gradient(white, transparent) 3px 3px;
-    background-size: 200px 200px, 300px 300px, 400px 400px;
-    opacity: 0.25;
-    animation: stars 20s linear infinite;
-}
-@keyframes stars {
-    from {transform: translateY(0);}
-    to {transform: translateY(-2000px);}
+/* Космический туман (canvas фон) */
+canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
-/* Главная планета */
+/* Акварельная главная планета */
 .planet {
-    position: absolute;
-    top: 45vh;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle at 40% 40%, #dfe3ff, #8aa0d9, #44588d);
-    border-radius: 50%;
-    filter: blur(0.5px);
+  position: absolute;
+  top: 48vh;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #ffe9f7, #c8b8ff, #7aa0ff, #2f3e66);
+  filter: blur(1px);
+  animation: breathe 18s ease-in-out infinite;
 }
 
-/* Спутник */
+/* Акварельный спутник */
 .moon {
-    position: absolute;
-    top: 45vh;
-    left: 50%;
-    width: 90px;
-    height: 90px;
-    background: radial-gradient(circle at 40% 40%, #ffffff, #ced4f2, #6f7da8);
-    border-radius: 50%;
-    animation: orbit 14s linear infinite;
+  position: absolute;
+  top: 48vh;
+  left: 50%;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fdfcff, #d4d9fa, #6f7da8);
+  animation: orbit 28s linear infinite;
 }
+
 @keyframes orbit {
-    from { transform: rotate(0deg) translateX(200px) rotate(0deg); }
-    to   { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
+  from { transform: rotate(0deg) translateX(380px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(380px) rotate(-360deg); }
 }
 
+@keyframes breathe {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Заголовок */
 h1 {
-    margin-top: 40px;
-    font-size: 42px;
-    font-weight: 600;
-}
-.subtitle {
-    opacity: 0.75;
-    margin-top: -5px;
-    font-size: 17px;
+  position: absolute;
+  top: 12vh;
+  width: 100%;
+  text-align: center;
+  font-size: 52px;
+  letter-spacing: 1px;
+  opacity: 0.9;
 }
 
-.lines {
-    position: absolute;
-    width: 100%;
-    bottom: 8vh;
-    font-size: 20px;
-    line-height: 1.7;
-    opacity: 0;
-    transition: 2s;
+/* Текст признания */
+.text {
+  position: absolute;
+  width: 100%;
+  bottom: 10vh;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.6;
+  opacity: 0;
+  transition: opacity 3s;
 }
 .show { opacity: 1; }
-
-/* Музыка кнопка */
-button {
-    margin-top: 14px;
-    background: none;
-    border: 1px solid rgba(255,255,255,0.4);
-    padding: 8px 20px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-family: inherit;
-    transition: 0.4s;
-}
-button:hover { border-color: white; }
 </style>
 </head>
 
-<body onclick="revealText()">
+<body>
 
-<div class="stars"></div>
+<canvas id="space"></canvas>
 
 <div class="planet"></div>
 <div class="moon"></div>
 
-<h1>Планета Айя</h1>
-<div class="subtitle">мягкий космос, любовь и мы</div>
+<h1>Айя</h1>
 
-<audio id="music" src="" preload="auto"></audio>
-
-<div class="lines" id="text">
-Айя — моя планета. Тёплая, светлая, живая.<br>
-Твоё имя — как орбита: к тебе всегда тянет.<br>
-Когда ты рядом — космос становится добрее.<br>
-<br>
-Пусть будет больше смеха, тепла и наших «да».<br>
-Люблю тебя. Сегодня — и дальше.
+<div class="text" id="t">
+Ты — как рассвет: тёплая, мягкая, светлая.<br>
+В тебе есть тишина, в которой хочется остаться.<br>
+Рядом с тобой мир дышит спокойнее.<br><br>
+Я люблю тебя. Мягко. Тихо. Глубоко.
 </div>
 
-<button onclick="playMusic(event)">▷ Музыка</button>
+<audio id="m" src="" preload="auto"></audio>
 
 <script>
-let shown = false;
-function revealText(){
-    if(shown) return;
-    shown = true;
-    document.getElementById("text").classList.add("show");
+// Плавное появление текста
+setTimeout(() => {
+  document.getElementById("t").classList.add("show");
+}, 2000);
+
+// Авто музыка + плавный fade-in
+const audio = document.getElementById("m");
+audio.volume = 0;
+audio.play().catch(()=>{}); // если браузер запретит — включим при клике
+let v = 0;
+const fade = setInterval(()=>{
+  if (v < 0.6) { v += 0.01; audio.volume = v; }
+  else clearInterval(fade);
+}, 200);
+
+// Космический акварельный туман
+const c = document.getElementById("space"), ctx = c.getContext("2d");
+function resize() { c.width = innerWidth; c.height = innerHeight; }
+resize(); addEventListener("resize", resize);
+
+let stars = [];
+for(let i=0;i<120;i++){
+  stars.push({x:Math.random()*c.width,y:Math.random()*c.height, r:Math.random()*2+0.5, s:Math.random()*0.5+0.2});
 }
 
-function playMusic(e){
-    e.stopPropagation();
-    let m = document.getElementById("music");
-    if(m.paused){ m.play(); e.target.innerText="❚❚ Пауза"; }
-    else { m.pause(); e.target.innerText="▷ Музыка"; }
+function draw(){
+  ctx.fillStyle = "rgba(255,200,230,0.07)";
+  ctx.fillRect(0,0,c.width,c.height);
+  for(let s of stars){
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fill();
+    s.y -= s.s;
+    if(s.y < 0) s.y = c.height;
+  }
+  requestAnimationFrame(draw);
 }
+draw();
 </script>
 
 </body>
