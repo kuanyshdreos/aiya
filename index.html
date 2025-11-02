@@ -72,16 +72,23 @@ button:hover {
 </style>
 
 </head>
-
 <body>
-
 <main>
 
 <h1>Планета Айя</h1>
 <p class="subtitle">космос, любовь и мы — красочно и по-настоящему</p>
 
 <div class="planet-wrapper">
-    <img class="planet-svg" src="planet.svg" alt="Планета Айя">
+<svg class="planet-svg" viewBox="0 0 500 500">
+<defs>
+<radialGradient id="grad1" cx="50%" cy="50%" r="50%">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+  <stop offset="100%" stop-color="#3b4f85"/>
+</radialGradient>
+</defs>
+<circle cx="250" cy="250" r="180" fill="url(#grad1)"></circle>
+<ellipse cx="250" cy="260" rx="260" ry="90" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="18"/>
+</svg>
 </div>
 
 <p class="text">
@@ -95,7 +102,7 @@ button:hover {
 <button id="musicButton">▷ Музыка</button>
 <button id="fullscreenButton">⤢ На весь экран</button>
 
-<audio id="audio" src="ambient.mp3"></audio>
+<audio id="audio"></audio>
 
 </main>
 
@@ -107,17 +114,18 @@ const fullscreenButton = document.getElementById("fullscreenButton");
 let playing = false;
 
 musicButton.onclick = () => {
+    if (!audio.src) {
+        audio.src = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_68b3c9b89c.mp3?filename=ambient-calm-space-110624.mp3";
+    }
     playing ? audio.pause() : audio.play();
     playing = !playing;
     musicButton.textContent = playing ? "❚❚ Музыка" : "▷ Музыка";
 };
 
 fullscreenButton.onclick = () => {
-    if (!document.fullscreenElement) {
+    document.fullscreenElement ?
+        document.exitFullscreen() :
         document.documentElement.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
 };
 </script>
 
