@@ -107,55 +107,182 @@
         };
     }
 
-    // Функция для получения IP-адреса
+    // Функция для получения IP-адреса и местоположения
     function getIPAddress() {
         return new Promise((resolve) => {
-            // Пробуем несколько API для надежности
-            const apis = [
-                'https://api.ipify.org?format=json',
-                'https://api64.ipify.org?format=json',
-                'https://ipapi.co/json/'
-            ];
+            // Сначала получаем IP
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(ipData => {
+                    const ip = ipData.ip;
+                    
+                    if (!ip) {
+                        resolve({ ip: 'Unknown', location: 'Unknown' });
+                        return;
+                    }
 
-            let attempts = 0;
-            const maxAttempts = apis.length;
+                    // Теперь получаем данные о местоположении по IP
+                    // Пробуем несколько API для получения координат
+                    const locationAPIs = [
+                        `https://ipapi.co/${ip}/json/`,
+                        `https://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,timezone,isp,org,as,query`,
+                        `https://freeipapi.com/api/json/${ip}`
+                    ];
 
-            function tryAPI(index) {
-                if (index >= maxAttempts) {
-                    resolve({ ip: 'Unknown', location: 'Unknown' });
-                    return;
-                }
+                    let locationAttempts = 0;
+                    const maxLocationAttempts = locationAPIs.length;
 
-                fetch(apis[index])
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.ip) {
+                    function tryLocationAPI(apiIndex) {
+                        if (apiIndex >= maxLocationAttempts) {
+                            // Если не удалось получить данные, возвращаем хотя бы IP
                             resolve({
-                                ip: data.ip,
-                                location: data.country ? `${data.country}, ${data.city || ''}`.trim() : 'Unknown',
-                                country: data.country || 'Unknown',
-                                city: data.city || 'Unknown',
-                                region: data.region || 'Unknown',
-                                isp: data.org || data.isp || 'Unknown'
+                                ip: ip,
+                                location: 'Unknown',
+                                country: 'Unknown',
+                                city: 'Unknown',
+                                region: 'Unknown',
+                                isp: 'Unknown',
+                                latitude: null,
+                                longitude: null,
+                                timezone: null
                             });
-                        } else {
-                            tryAPI(index + 1);
+                            return;
                         }
-                    })
-                    .catch(() => {
-                        tryAPI(index + 1);
-                    });
-            }
 
-            tryAPI(0);
+                        fetch(locationAPIs[apiIndex])
+                            .then(response => {
+                                if (!response.ok) throw new Error('API error');
+                                return response.json();
+                            })
+                            .then(data => {
+                                // Обработка для ipapi.co
+                                if (data.country || data.countryCode) {
+                                    const country = data.country_name || data.country || 'Unknown';
+                                    const city = data.city || 'Unknown';
+                                    const region = data.region || data.regionName || 'Unknown';
+                                    
+                                    resolve({
+                                        ip: ip,
+                                        location: country && city ? `${country}, ${city}`.trim() : (country || 'Unknown'),
+                                        country: country,
+                                        city: city,
+                                        region: region,
+                                        isp: data.org || data.isp || data.as || 'Unknown',
+                                        latitude: data.latitude || data.lat || null,
+                                        longitude: data.longitude || data.lon || null,
+                                        timezone: data.timezone || null
+                                    });
+                                    return;
+                                }
+                                
+                                // Обработка для ip-api.com
+                                if (data.status === 'success' || data.countryCode) {
+                                    resolve({
+                                        ip: ip,
+                                        location: data.country && data.city ? `${data.country}, ${data.city}`.trim() : (data.country || 'Unknown'),
+                                        country: data.country || 'Unknown',
+                                        city: data.city || 'Unknown',
+                                        region: data.regionName || data.region || 'Unknown',
+                                        isp: data.isp || data.org || data.as || 'Unknown',
+                                        latitude: data.lat || null,
+                                        longitude: data.lon || null,
+                                        timezone: data.timezone || null
+                                    });
+                                    return;
+                                }
+                                
+                                // Если данные неполные, пробуем следующий API
+                                tryLocationAPI(apiIndex + 1);
+                            })
+                            .catch(() => {
+                                tryLocationAPI(apiIndex + 1);
+                            });
+                    }
+
+                    tryLocationAPI(0);
+                })
+                .catch(() => {
+                    // Если не удалось получить IP, пробуем альтернативный способ
+                    fetch('https://api64.ipify.org?format=json')
+                        .then(response => response.json())
+                        .then(ipData => {
+                            if (ipData.ip) {
+                                // Повторяем попытку получить местоположение
+                                fetch(`https://ipapi.co/${ipData.ip}/json/`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        resolve({
+                                            ip: ipData.ip,
+                                            location: data.country_name && data.city ? `${data.country_name}, ${data.city}`.trim() : (data.country_name || 'Unknown'),
+                                            country: data.country_name || 'Unknown',
+                                            city: data.city || 'Unknown',
+                                            region: data.region || 'Unknown',
+                                            isp: data.org || 'Unknown',
+                                            latitude: data.latitude || null,
+                                            longitude: data.longitude || null,
+                                            timezone: data.timezone || null
+                                        });
+                                    })
+                                    .catch(() => {
+                                        resolve({ ip: ipData.ip, location: 'Unknown' });
+                                    });
+                            } else {
+                                resolve({ ip: 'Unknown', location: 'Unknown' });
+                            }
+                        })
+                        .catch(() => {
+                            resolve({ ip: 'Unknown', location: 'Unknown' });
+                        });
+                });
         });
+    }
+
+    // Функция для определения имени страницы
+    function getPageNameFromPath(pathname) {
+        // Убираем начальный и конечный слэш
+        const cleanPath = pathname.replace(/^\/+|\/+$/g, '');
+        
+        // Если путь пустой или заканчивается на /, это index
+        if (!cleanPath || cleanPath === '' || cleanPath.endsWith('/')) {
+            return 'index';
+        }
+        
+        // Разбиваем путь на части
+        const pathParts = cleanPath.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        
+        // Убираем расширение и параметры
+        const nameWithoutExt = lastPart.split('.')[0];
+        const nameWithoutParams = nameWithoutExt.split('?')[0];
+        
+        // Если это index или gallery, возвращаем
+        if (nameWithoutParams === 'index' || nameWithoutParams === 'gallery') {
+            return nameWithoutParams;
+        }
+        
+        // Если путь содержит gallery, это gallery
+        if (cleanPath.includes('gallery')) {
+            return 'gallery';
+        }
+        
+        // Если путь содержит index или это корень, это index
+        if (cleanPath.includes('index') || cleanPath === '' || pathname === '/') {
+            return 'index';
+        }
+        
+        // По умолчанию index
+        return 'index';
     }
 
     // Функция для получения дополнительной информации
     function getAdditionalInfo() {
+        const pathname = window.location.pathname;
+        const pageName = getPageNameFromPath(pathname);
+        
         return {
             referrer: document.referrer || 'Direct',
-            page: window.location.pathname,
+            page: pageName, // Сохраняем короткое имя страницы
+            pagePath: pathname, // Сохраняем полный путь для справки
             fullUrl: window.location.href,
             timestamp: new Date().toISOString(),
             localTime: new Date().toLocaleString('ru-RU'),
