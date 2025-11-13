@@ -110,23 +110,46 @@
     // Функция для получения IP-адреса и местоположения
     function getIPAddress() {
         return new Promise((resolve) => {
-            // Сначала получаем IP
-            fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
+            // Сначала получаем IP - пробуем несколько источников
+            const ipAPIs = [
+                'https://api.ipify.org?format=json',
+                'https://api64.ipify.org?format=json',
+                'https://api.ipify.org?format=json'
+            ];
+            
+            let ipAttempts = 0;
+            const maxIpAttempts = ipAPIs.length;
+            
+            function tryGetIP(apiIndex) {
+                if (apiIndex >= maxIpAttempts) {
+                    resolve({ ip: 'Unknown', location: 'Unknown' });
+                    return;
+                }
+                
+                fetch(ipAPIs[apiIndex], {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('IP API error');
+                    return response.json();
+                })
                 .then(ipData => {
                     const ip = ipData.ip;
                     
                     if (!ip) {
-                        resolve({ ip: 'Unknown', location: 'Unknown' });
+                        tryGetIP(apiIndex + 1);
                         return;
                     }
 
                     // Теперь получаем данные о местоположении по IP
-                    // Пробуем несколько API для получения координат
+                    // Пробуем несколько API для получения координат (приоритет для мобильных)
                     const locationAPIs = [
-                        `https://ipapi.co/${ip}/json/`,
                         `https://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,lat,lon,timezone,isp,org,as,query`,
-                        `https://freeipapi.com/api/json/${ip}`
+                        `https://ipapi.co/${ip}/json/`,
+                        `https://freeipapi.com/api/json/${ip}`,
+                        `https://ipwho.is/${ip}`
                     ];
 
                     let locationAttempts = 0;
@@ -149,14 +172,41 @@
                             return;
                         }
 
-                        fetch(locationAPIs[apiIndex])
+                        fetch(locationAPIs[apiIndex], {
+                            method: 'GET',
+                            mode: 'cors',
+                            cache: 'no-cache',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        })
                             .then(response => {
-                                if (!response.ok) throw new Error('API error');
+                                if (!response.ok) throw new Error('Location API error');
                                 return response.json();
                             })
                             .then(data => {
+                                // Обработка для ip-api.com (приоритетный для мобильных)
+                                if (data.status === 'success' || (data.countryCode && data.city)) {
+                                    const country = data.country || 'Unknown';
+                                    const city = data.city || 'Unknown';
+                                    const region = data.regionName || data.region || 'Unknown';
+                                    
+                                    resolve({
+                                        ip: ip,
+                                        location: country && city ? `${country}, ${city}`.trim() : (country || 'Unknown'),
+                                        country: country,
+                                        city: city,
+                                        region: region,
+                                        isp: data.isp || data.org || data.as || 'Unknown',
+                                        latitude: data.lat || null,
+                                        longitude: data.lon || null,
+                                        timezone: data.timezone || null
+                                    });
+                                    return;
+                                }
+                                
                                 // Обработка для ipapi.co
-                                if (data.country || data.countryCode) {
+                                if (data.country || data.countryCode || data.country_name) {
                                     const country = data.country_name || data.country || 'Unknown';
                                     const city = data.city || 'Unknown';
                                     const region = data.region || data.regionName || 'Unknown';
@@ -175,18 +225,18 @@
                                     return;
                                 }
                                 
-                                // Обработка для ip-api.com
-                                if (data.status === 'success' || data.countryCode) {
+                                // Обработка для ipwho.is
+                                if (data.success !== false && (data.country || data.city)) {
                                     resolve({
                                         ip: ip,
                                         location: data.country && data.city ? `${data.country}, ${data.city}`.trim() : (data.country || 'Unknown'),
                                         country: data.country || 'Unknown',
                                         city: data.city || 'Unknown',
-                                        region: data.regionName || data.region || 'Unknown',
-                                        isp: data.isp || data.org || data.as || 'Unknown',
-                                        latitude: data.lat || null,
-                                        longitude: data.lon || null,
-                                        timezone: data.timezone || null
+                                        region: data.region || data.regionName || 'Unknown',
+                                        isp: data.isp || data.org || data.connection?.isp || 'Unknown',
+                                        latitude: data.latitude || data.lat || null,
+                                        longitude: data.longitude || data.lon || null,
+                                        timezone: data.timezone?.id || data.timezone || null
                                     });
                                     return;
                                 }
@@ -194,56 +244,45 @@
                                 // Если данные неполные, пробуем следующий API
                                 tryLocationAPI(apiIndex + 1);
                             })
-                            .catch(() => {
+                            .catch((error) => {
+                                console.log('Location API error:', locationAPIs[apiIndex], error);
                                 tryLocationAPI(apiIndex + 1);
                             });
                     }
 
                     tryLocationAPI(0);
                 })
-                .catch(() => {
-                    // Если не удалось получить IP, пробуем альтернативный способ
-                    fetch('https://api64.ipify.org?format=json')
-                        .then(response => response.json())
-                        .then(ipData => {
-                            if (ipData.ip) {
-                                // Повторяем попытку получить местоположение
-                                fetch(`https://ipapi.co/${ipData.ip}/json/`)
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        resolve({
-                                            ip: ipData.ip,
-                                            location: data.country_name && data.city ? `${data.country_name}, ${data.city}`.trim() : (data.country_name || 'Unknown'),
-                                            country: data.country_name || 'Unknown',
-                                            city: data.city || 'Unknown',
-                                            region: data.region || 'Unknown',
-                                            isp: data.org || 'Unknown',
-                                            latitude: data.latitude || null,
-                                            longitude: data.longitude || null,
-                                            timezone: data.timezone || null
-                                        });
-                                    })
-                                    .catch(() => {
-                                        resolve({ ip: ipData.ip, location: 'Unknown' });
-                                    });
-                            } else {
-                                resolve({ ip: 'Unknown', location: 'Unknown' });
-                            }
-                        })
-                        .catch(() => {
-                            resolve({ ip: 'Unknown', location: 'Unknown' });
-                        });
+                .catch((error) => {
+                    console.log('IP API error:', ipAPIs[apiIndex], error);
+                    tryGetIP(apiIndex + 1);
                 });
+            }
+            
+            tryGetIP(0);
         });
     }
 
     // Функция для определения имени страницы
     function getPageNameFromPath(pathname) {
+        // Проверяем полный URL для более точного определения
+        const fullUrl = window.location.href;
+        const fileName = window.location.pathname.split('/').pop() || '';
+        
+        // Если в URL есть gallery, это gallery
+        if (fullUrl.includes('gallery') || pathname.includes('gallery') || fileName.includes('gallery')) {
+            return 'gallery';
+        }
+        
+        // Если путь пустой, корневой, или заканчивается на /, это index
+        if (!pathname || pathname === '/' || pathname === '' || pathname.endsWith('/')) {
+            return 'index';
+        }
+        
         // Убираем начальный и конечный слэш
         const cleanPath = pathname.replace(/^\/+|\/+$/g, '');
         
-        // Если путь пустой или заканчивается на /, это index
-        if (!cleanPath || cleanPath === '' || cleanPath.endsWith('/')) {
+        // Если путь пустой после очистки, это index
+        if (!cleanPath || cleanPath === '') {
             return 'index';
         }
         
@@ -261,31 +300,133 @@
         }
         
         // Если путь содержит gallery, это gallery
-        if (cleanPath.includes('gallery')) {
+        if (cleanPath.includes('gallery') || lastPart.includes('gallery')) {
             return 'gallery';
         }
         
         // Если путь содержит index или это корень, это index
-        if (cleanPath.includes('index') || cleanPath === '' || pathname === '/') {
+        if (cleanPath.includes('index') || lastPart.includes('index')) {
             return 'index';
         }
         
-        // По умолчанию index
+        // Если имя файла пустое или это корневая страница, это index
+        if (!lastPart || lastPart === '' || fileName === '' || fileName === 'index.html') {
+            return 'index';
+        }
+        
+        // По умолчанию index (для всех остальных случаев)
         return 'index';
+    }
+
+    // Функция для определения типа источника перехода
+    function getReferrerInfo() {
+        const referrer = document.referrer || '';
+        const currentUrl = window.location.href;
+        const currentDomain = window.location.hostname;
+        
+        // Если referrer пустой, это прямой вход
+        if (!referrer || referrer === '') {
+            return {
+                type: 'Direct',
+                source: 'Прямой вход',
+                url: '',
+                domain: '',
+                isInternal: false
+            };
+        }
+        
+        try {
+            const referrerUrl = new URL(referrer);
+            const referrerDomain = referrerUrl.hostname;
+            
+            // Проверяем, внутренний ли это переход (с того же сайта)
+            const isInternal = referrerDomain === currentDomain || 
+                              referrerDomain.replace('www.', '') === currentDomain.replace('www.', '');
+            
+            if (isInternal) {
+                // Внутренний переход
+                const referrerPath = referrerUrl.pathname;
+                const referrerPage = getPageNameFromPath(referrerPath);
+                return {
+                    type: 'Internal',
+                    source: `Внутренний переход (${referrerPage})`,
+                    url: referrer,
+                    domain: referrerDomain,
+                    page: referrerPage,
+                    isInternal: true
+                };
+            } else {
+                // Внешний источник
+                let sourceType = 'Внешний сайт';
+                
+                // Определяем тип источника
+                if (referrerDomain.includes('google')) {
+                    sourceType = 'Google';
+                } else if (referrerDomain.includes('yandex')) {
+                    sourceType = 'Yandex';
+                } else if (referrerDomain.includes('facebook')) {
+                    sourceType = 'Facebook';
+                } else if (referrerDomain.includes('instagram')) {
+                    sourceType = 'Instagram';
+                } else if (referrerDomain.includes('twitter') || referrerDomain.includes('x.com')) {
+                    sourceType = 'Twitter/X';
+                } else if (referrerDomain.includes('vk.com')) {
+                    sourceType = 'VKontakte';
+                } else if (referrerDomain.includes('telegram')) {
+                    sourceType = 'Telegram';
+                } else if (referrerDomain.includes('whatsapp')) {
+                    sourceType = 'WhatsApp';
+                } else if (referrerDomain.includes('mail')) {
+                    sourceType = 'Email';
+                }
+                
+                return {
+                    type: 'External',
+                    source: sourceType,
+                    url: referrer,
+                    domain: referrerDomain,
+                    isInternal: false
+                };
+            }
+        } catch (e) {
+            // Если не удалось распарсить URL
+            return {
+                type: 'Unknown',
+                source: 'Неизвестный источник',
+                url: referrer,
+                domain: '',
+                isInternal: false
+            };
+        }
     }
 
     // Функция для получения дополнительной информации
     function getAdditionalInfo() {
         const pathname = window.location.pathname;
         const pageName = getPageNameFromPath(pathname);
+        const referrerInfo = getReferrerInfo();
+        
+        // Проверяем параметры URL (UTM и другие)
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmSource = urlParams.get('utm_source');
+        const utmMedium = urlParams.get('utm_medium');
+        const utmCampaign = urlParams.get('utm_campaign');
+        const refParam = urlParams.get('ref');
         
         return {
             referrer: document.referrer || 'Direct',
+            referrerInfo: referrerInfo,
             page: pageName, // Сохраняем короткое имя страницы
             pagePath: pathname, // Сохраняем полный путь для справки
             fullUrl: window.location.href,
             timestamp: new Date().toISOString(),
             localTime: new Date().toLocaleString('ru-RU'),
+            utm: {
+                source: utmSource || null,
+                medium: utmMedium || null,
+                campaign: utmCampaign || null,
+                ref: refParam || null
+            },
             viewport: {
                 width: window.innerWidth,
                 height: window.innerHeight
@@ -358,6 +499,13 @@
 
         // Выводим в консоль для отладки
         console.log('📊 Аналитика посетителя:', visitorData);
+        console.log('📍 Страница:', visitorData.page, '| Путь:', visitorData.pagePath);
+        console.log('🌍 Местоположение:', visitorData.location, '| IP:', visitorData.ip);
+        console.log('📱 Устройство:', visitorData.deviceType, '| Модель:', visitorData.deviceModel);
+        console.log('🔗 Источник перехода:', visitorData.referrerInfo?.source || visitorData.referrer || 'Direct', '| Тип:', visitorData.referrerInfo?.type || 'Unknown');
+        if (visitorData.utm && (visitorData.utm.source || visitorData.utm.ref)) {
+            console.log('📊 UTM метки:', visitorData.utm);
+        }
 
         return visitorData;
     }

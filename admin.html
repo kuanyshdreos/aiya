@@ -525,7 +525,7 @@
             <!-- Вкладка посетителей -->
             <div class="tab-content active" id="visitorsTab">
                 <div class="controls">
-                    <input type="text" class="filter-input" id="filterInput" placeholder="🔍 Поиск по IP, устройству, браузеру...">
+                    <input type="text" class="filter-input" id="filterInput" placeholder="🔍 Поиск по IP, устройству, браузеру, источнику перехода...">
                     <button onclick="clearData()" class="danger">🗑️ Очистить данные</button>
                 </div>
                 <div class="visitors-list" id="visitorsList"></div>
@@ -768,7 +768,13 @@
                     v.browser?.toLowerCase().includes(search) ||
                     v.os?.toLowerCase().includes(search) ||
                     v.country?.toLowerCase().includes(search) ||
-                    v.city?.toLowerCase().includes(search)
+                    v.city?.toLowerCase().includes(search) ||
+                    v.referrerInfo?.source?.toLowerCase().includes(search) ||
+                    v.referrerInfo?.domain?.toLowerCase().includes(search) ||
+                    v.referrerInfo?.type?.toLowerCase().includes(search) ||
+                    v.referrer?.toLowerCase().includes(search) ||
+                    (v.utm?.source && v.utm.source.toLowerCase().includes(search)) ||
+                    (v.utm?.ref && v.utm.ref.toLowerCase().includes(search))
                 );
             }) : data;
 
@@ -823,8 +829,36 @@
                         <div><strong>Экран:</strong> ${visitor.screen?.width || '?'}×${visitor.screen?.height || '?'}</div>
                         <div><strong>Язык:</strong> ${visitor.language || 'Unknown'}</div>
                         <div><strong>Страница:</strong> ${getPageName(visitor.page)}</div>
-                        ${visitor.referrer && visitor.referrer !== 'Direct' ? 
-                            `<div><strong>Откуда:</strong> ${visitor.referrer.substring(0, 50)}...</div>` : ''}
+                        ${visitor.referrerInfo ? 
+                            `<div style="margin-top: 10px; padding: 10px; background: rgba(77, 171, 247, 0.1); border-radius: 8px; border-left: 3px solid #4dabf7;">
+                                <strong style="color: #4dabf7;">🔗 Источник перехода:</strong>
+                                <div style="margin-top: 5px;">
+                                    <div><strong>Тип:</strong> ${visitor.referrerInfo.source || 'Неизвестно'}</div>
+                                    ${visitor.referrerInfo.domain ? `<div><strong>Домен:</strong> ${visitor.referrerInfo.domain}</div>` : ''}
+                                    ${visitor.referrerInfo.page ? `<div><strong>Страница:</strong> ${visitor.referrerInfo.page}</div>` : ''}
+                                    ${visitor.referrerInfo.url && visitor.referrerInfo.url.length > 0 ? 
+                                        `<div style="margin-top: 5px; word-break: break-all; font-size: 0.9em; color: rgba(255,255,255,0.7);">
+                                            <strong>URL:</strong> ${visitor.referrerInfo.url.length > 60 ? visitor.referrerInfo.url.substring(0, 60) + '...' : visitor.referrerInfo.url}
+                                        </div>` : ''}
+                                    ${visitor.referrerInfo.type === 'Direct' ? 
+                                        '<div style="color: #ffd700; margin-top: 5px;">✨ Прямой вход (ввел URL вручную или закладка)</div>' : ''}
+                                    ${visitor.referrerInfo.type === 'Internal' ? 
+                                        '<div style="color: #4dabf7; margin-top: 5px;">🔄 Внутренний переход (переход внутри сайта)</div>' : ''}
+                                    ${visitor.referrerInfo.type === 'External' ? 
+                                        '<div style="color: #ff6b9d; margin-top: 5px;">🌐 Внешний источник (переход по ссылке)</div>' : ''}
+                                </div>
+                            </div>` : 
+                            (visitor.referrer && visitor.referrer !== 'Direct' ? 
+                                `<div><strong>Откуда:</strong> ${visitor.referrer.substring(0, 50)}...</div>` : 
+                                '<div><strong>Откуда:</strong> Прямой вход</div>')}
+                        ${visitor.utm && (visitor.utm.source || visitor.utm.ref) ? 
+                            `<div style="margin-top: 10px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; border-left: 3px solid #ffd700;">
+                                <strong style="color: #ffd700;">📊 UTM метки:</strong>
+                                ${visitor.utm.source ? `<div><strong>Источник:</strong> ${visitor.utm.source}</div>` : ''}
+                                ${visitor.utm.medium ? `<div><strong>Канал:</strong> ${visitor.utm.medium}</div>` : ''}
+                                ${visitor.utm.campaign ? `<div><strong>Кампания:</strong> ${visitor.utm.campaign}</div>` : ''}
+                                ${visitor.utm.ref ? `<div><strong>Реферал:</strong> ${visitor.utm.ref}</div>` : ''}
+                            </div>` : ''}
                         <div style="position: relative;">
                             <strong>🔑 Сессия:</strong> 
                             <span class="session-id" 
